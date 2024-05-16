@@ -1,0 +1,12 @@
+[package]
+name = "sshkeytest"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# The default feature includes ecdsa, rand_core and others.
+ssh-key = { version = "0.6.6", features = ["rsa", "ed25519", "ecdsa", "p521"] }
+rand = { version = "0.8.5", features = [ "getrandom" ] }
+rand_core = "0.6.4"
