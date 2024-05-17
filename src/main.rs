@@ -69,6 +69,6 @@ fn gen_ssh_keys(iterations: u32, rng: &mut impl CryptoRngCore, algorithm: Algori
         //     if let Ok(k) = key.to_openssh(ssh_key::LineEnding::LF) {
         //         println!("First key: \n{}", k.to_string());
         //     }
-        }
+        //}
     }
 }
