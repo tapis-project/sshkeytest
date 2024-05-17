@@ -1,12 +1,18 @@
 use ssh_key::{Algorithm, HashAlg, EcdsaCurve, PrivateKey};
-use rand_core::CryptoRngCore;
-use rand;
-use std::time::Instant;
+use rand_core::CryptoRngCore; // rand is implicitly exposed
+use std::{ops::Deref, time::Instant};
 
-
+/** This program records the time it takes to generate SSH keys using the different 
+ * algorithms supported by the ssh-key crate.  Details about the options set for 
+ * each algorithm can be discovered by drilling down into the source code of
+ * PrivateKey::random() in the gen_ssh_keys() function.
+ * 
+ * The general result
+ * 
+ */
 fn main() {
     // ****** CONFIGURE THESE PARAMETERS FOR EACH RUN ****** 
-    const RSA_ITERATIONS: u32 = 2;
+    const RSA_ITERATIONS: u32 = 100;
     const ITERATIONS: u32 = 10000;
     #[allow(non_snake_case)]
     let TEST_ALGS = ["RSA", "ECDSA", "ED25519"];  // valid options: ["RSA", "ECDSA", "ED25519"]
@@ -14,6 +20,8 @@ fn main() {
     
     // Operating system's random number generator.
     let mut rng = rand::rngs::OsRng;
+    // Secure thread-safe PRNG. See rand_chacha and ThreadRng for more info. 
+    // let mut rng = rand::thread_rng(); // chacha prng
 
     // ------- Ecdsa 
     if TEST_ALGS.contains(&"ECDSA") {
@@ -48,7 +56,7 @@ fn main() {
 #[allow(unused_variables)]
 fn gen_ssh_keys(iterations: u32, rng: &mut impl CryptoRngCore, algorithm: Algorithm) {
     // Announce this test.
-    println!("Beginning test of {} iterations of {} keys.", iterations, algorithm.to_string());
+    println!(">>>>>>>>>> Beginning test of {} iterations of {} keys.", iterations, algorithm.to_string());
 
     // Create keys in a loop.
     let mut key_cnt = 0;
@@ -65,10 +73,15 @@ fn gen_ssh_keys(iterations: u32, rng: &mut impl CryptoRngCore, algorithm: Algori
         };
 
         // Print first key.
-        // if key_cnt == 1 {
-        //     if let Ok(k) = key.to_openssh(ssh_key::LineEnding::LF) {
-        //         println!("First key: \n{}", k.to_string());
-        //     }
-        //}
+        if key_cnt == 1 {
+            // if let Ok(k) = key.to_openssh(ssh_key::LineEnding::LF) {
+            //     println!("First key: \n{}", k.to_string());
+            // }
+
+            if let Ok(b) = key.to_bytes() {
+                let v = b.deref();
+                println!("Key length in bytes = {}", v.len());
+            }
+        }
     }
 }

@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 # The default feature includes ecdsa, rand_core and others.
 ssh-key = { version = "0.6.6", features = ["rsa", "ed25519", "ecdsa", "p521"] }
-rand = { version = "0.8.5", features = [ "getrandom" ] }
-rand_core = "0.6.4"
+rand = { version = "0.8.5" }
+rand_core = "0.6"
