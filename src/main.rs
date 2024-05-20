@@ -7,17 +7,27 @@ use std::{ops::Deref, time::Instant};
  * each algorithm can be discovered by drilling down into the source code of
  * PrivateKey::random() in the gen_ssh_keys() function.
  * 
- * The general result
+ * The optimized ED25519 results are the clear winner on this machine, taking 29 
+ * microseconds on average to generate a key.  Generating keys is about 30 times 
+ * slower for optimized ECDSA and about 250,000 times slower for optimized RSA.  
+ * 
+ * Running the Program
+ * -------------------
+ * Change the RSA_ITERATIONS and ITERATIONS constants at the top of main() to
+ * specify the number of keys to be generated.  By default, the first key's 
+ * information is printed to stdout.  Adjust as needed.
  * 
  */
 fn main() {
+    //******************************************************
     // ****** CONFIGURE THESE PARAMETERS FOR EACH RUN ****** 
-    const RSA_ITERATIONS: u32 = 100;
-    const ITERATIONS: u32 = 10000;
+    const RSA_ITERATIONS: u32 = 1;  // rsa generation is very slow, especially in dev builds
+    const ITERATIONS: u32 = 1000;   // ed25519 and ecdsa are pretty fast
     #[allow(non_snake_case)]
     let TEST_ALGS = ["RSA", "ECDSA", "ED25519"];  // valid options: ["RSA", "ECDSA", "ED25519"]
-    // ****** END OF PARAMETER CONFIGURATION ****** 
-    
+    // ****** END OF PARAMETER CONFIGURATION *************** 
+    //******************************************************
+
     // Operating system's random number generator.
     let mut rng = rand::rngs::OsRng;
     // Secure thread-safe PRNG. See rand_chacha and ThreadRng for more info. 
@@ -56,7 +66,7 @@ fn main() {
 #[allow(unused_variables)]
 fn gen_ssh_keys(iterations: u32, rng: &mut impl CryptoRngCore, algorithm: Algorithm) {
     // Announce this test.
-    println!(">>>>>>>>>> Beginning test of {} iterations of {} keys.", iterations, algorithm.to_string());
+    println!("\n>>>>>>>>>> Beginning test of {} iterations of {} keys.", iterations, algorithm.to_string());
 
     // Create keys in a loop.
     let mut key_cnt = 0;
@@ -74,14 +84,22 @@ fn gen_ssh_keys(iterations: u32, rng: &mut impl CryptoRngCore, algorithm: Algori
 
         // Print first key.
         if key_cnt == 1 {
-            // if let Ok(k) = key.to_openssh(ssh_key::LineEnding::LF) {
-            //     println!("First key: \n{}", k.to_string());
-            // }
+            println!("------- Private key:");
+            if let Ok(k) = key.to_openssh(ssh_key::LineEnding::LF) {
+                println!("{}", k.to_string());
+            }
 
             if let Ok(b) = key.to_bytes() {
                 let v = b.deref();
                 println!("Key length in bytes = {}", v.len());
             }
+
+            if let Ok(pubk) = key.public_key().to_openssh() {
+                println!("\n------- Public key: \n{}", pubk);
+            }
+
+            let fp = key.fingerprint(HashAlg::Sha256); 
+            println!("\n------- fingerprint: \n{}", fp);
         }
     }
 }
